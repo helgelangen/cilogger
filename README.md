@@ -1,4 +1,4 @@
-[![Build Status](https://jenkins.nadbygg.no/buildStatus/icon?job=cilogger%2Fmain&style=plastic)](https://jenkins.nadbygg.no/me/my-views/view/all/job/cilogger/job/main/)
+[![Build Status](https://jenkins.nadbygg.no/buildStatus/icon?job=cilogger%2Fmain&style=plastic)](https://jenkins.nadbygg.no/job/cilogger/job/main/)
 
 # cilogger
 Utility for producing beautiful formatted console output when running continous integration tests
