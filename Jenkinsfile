@@ -9,19 +9,19 @@ pipeline {
     stages {
         stage('Init') {
             steps {
-                printf 'Initializing ciLogger test'
+                echo 'Initializing ciLogger test'
                 sh 'python3 test/test_init.py'
             }
         }
         stage('Test') {
             steps {
-                printf 'Running ciLogger test'
+                echo 'Running ciLogger test'
                 sh 'python3 test/test.py'
             }
         }
         stage('Finalize') {
             steps {
-                printf 'Finalizing ciLogger test'
+                echo 'Finalizing ciLogger test'
                 sh 'python3 test/test_final.py'
             }
         }

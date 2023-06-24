@@ -56,3 +56,8 @@ The colFormat defines the columns of information to be printed. Each column is s
 'timer:runtime:6:10': prints the current runtime since the cilogger object was initiated, in seconds, with a precision of 6 decimals and column width 10. Field will be truncated if exceeding the column width  
 'timer:mytimer:6:10': prints the current time of custom timer mytimer, if mytimer has been initiated, in seconds with a precision of 6 and column width 10. Field will be truncated if exceeding the column width. Field will be blank if a timer with the given timer name has not been initiated.  
 'timer_ns:mytimer:11': prints the current time of custom timer mytimer, if mytimer has been initiated, in nanoseconds with column width 11. Field will be truncated if exceeding the column width. Field will be blank if a timer with the given timer name has not been initiated.  
+
+## Using with Jenkins
+Jenkins captures the console output from any shell command, including python scripts, called from a Jenkins job. To have Jenkins interpret the ANSI escape sequences used to apply styles to the console output, the AnsiColor plugin must be installed on the Jenkins controller. Go to the 'Manage Jenkins' -> 'Plugins' -> 'Available plugins' to find and install the AnsiColor plugin. Also see https://plugins.jenkins.io/ansicolor/.
+
+An example on how to invoke the ciLogger in a Jenkins pipeline build can be found in the Jenkinsfile found in this repository, which calls scripts in the test subfolder.
