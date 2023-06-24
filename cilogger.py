@@ -31,6 +31,7 @@ class ciLogger:
       self.logFileEncoding = ''
 
       self.silent = silent
+      self.status = 1
 
       self.dateTimeFormat = dateTimeFormat
 
@@ -230,6 +231,10 @@ class ciLogger:
    def ciSuccess( self, s ):
       self.ciPrint( s, msgType = 'success', fg = self.msgTypeFg['success'] )
    
+   ##################################################
+   # HTML logging support functions
+   ##################################################
+   
    def ciInitHtml( self, filePath, encoding = 'iso-8859-15', useGlobally = True ):
       '''
       Initialize logging output to HTML file in addition to console output
@@ -240,40 +245,128 @@ class ciLogger:
       self.logFilePath = Path( filePath )
       self.logFileEncoding = encoding
       with open( self.logFilePath, 'w', encoding = encoding) as logFile:
-         logFile.write('<html>')
-         logFile.write('<head>')
-         logFile.write('<style>')
-         logFile.write('body { background-color: #FFFFFF; font-family: "Lucida Console", "Ubuntu Mono", Courier, monospace; }')
-         logFile.write('</style>')
-         logFile.write('</head>')
-         logFile.write("<body>")
+         logFile.write('<!-- ciLogger open file -->\r\n')
+         logFile.write('<!doctype html>\r\n')
+         logFile.write('<html>\r\n')
+         logFile.write('<head>\r\n')
+         logFile.write('<style>\r\n')
+         logFile.write('body { background-color: #FFFFFF; font-family: "Lucida Console", "Ubuntu Mono", Courier, monospace; }\r\n')
+         logFile.write('</style>\r\n')
+         logFile.write('</head>\r\n')
+         logFile.write("<body>\r\n")
          logFile.close()
       if ( useGlobally ):
          os.environ['CI_LOGFILE'] = str( os.path.abspath( self.logFilePath ) )
          os.environ['CI_ENCODING'] = encoding
    
-   def ciFinalizeHtml( self, filePath = '', encoding = '' ):
+   def ciRecoverOpenHtmlFile( self, searchPath, encoding = 'iso-8859-15', useGlobally = True, forceSearch = False ):
       '''
-      Finalize HTML log file by appending closing HTML tags to the end of the file
+      If searchPath points to a .htm or .html file, check if this file exists and is an
+      open ciLogger HTML log file. If it is found, set it as the current HTML log file
+      and return True. If it is not found, return False.
+      
+      If searchPath points to a folder, check if an open ciLogger HTML log file exists
+      in that folder. If an open log file is found, return True and set it as the current
+      HTML log file. If multiple open HTML log files are found, the last modified file
+      is chosen. If no open file is found, return False.
+      
+      If the ciLogger object already has a path to a valid file, or if a path to a valid
+      file is found in the os environment variable CI_LOGFILE, a search is not performed.
+      This can be overridden by setting forceSearch to True, in which a search is performed,
+      and if a newer file is found, that file is set to be the current HTML log file.
       '''
-
-      if ( encoding == '' ):
-         if ( self.logFileEncoding != '' ):
-            encoding = self.logFileEncoding
-         elif 'CI_ENCODING' in os.environ:
-            encoding = os.environ['CI_ENCODING']
-
-
-      if ( filePath == '' ):
-         if ( not self.logFilePath.is_file() ):
+      
+      fileFound = False
+      
+      if ( not forceSearch ):
+         if ( type( self.logFilePath ) != str ):
+            if ( self.logFilePath.is_file() ):
+               fileFound = True
+         if ( not fileFound ):
             if 'CI_LOGFILE' in os.environ:
-               self.logFilePath = Path( os.environ['CI_LOGFILE'] )
-      else:
-         self.logFilePath = Path( filePath )
+               if ( Path( os.environ['CI_LOGFILE'] ).is_file() ):
+                  self.logFilePath = Path( os.environ['CI_LOGFILE'] )
+                  fileFound = True
+                  if 'CI_ENCODING' in os.environ:
+                     self.logFileEncoding = os.environ['CI_ENCODING']
+         
+      if ( not fileFound or forceSearch ):
+      
+         fileSearchPath = Path( searchPath )
+         logFilePath = Path()
+         latestModTime = 0
+      
+         if ( fileSearchPath.is_dir() ):
+            for diritem in fileSearchPath.iterdir():
+               if ( diritem.is_file() ):
+                  if ( diritem.suffix == ".htm" or diritem.suffix == ".html"):
+                     with open( diritem, 'r', encoding = encoding ) as dirFile:
+                        firstLine = dirFile.readline()
+                        dirFile.close()
+                     if ( len( firstLine ) ):
+                        if ( firstLine[:27] == '<!-- ciLogger open file -->' ):
+                           fileFound = True
+                           modTime = diritem.stat().st_mtime
+                           if ( modTime > latestModTime ):
+                              latestModTime = modTime
+                              logFilePath = diritem
+         elif( fileSearchPath.is_file() ):
+            if ( fileSearchPath.suffix == ".htm" or fileSearchPath.suffix == ".html" ):
+               with open( fileSearchPath, 'r', encoding = encoding ) as logFile:
+                  firstLine = logFile.readline()
+                  logFile.close()
+               if ( len( firstLine ) ):
+                  if ( firstLine[:27] == '<!-- ciLogger open file -->' ):
+                     fileFound = True
+                     logFilePath = fileSearchPath
+      
+         if ( fileFound ):
+            self.logFilePath = logFilePath
+            self.logFileEncoding = encoding
+            if ( useGlobally ):
+               os.environ['CI_LOGFILE'] = str( os.path.abspath( self.logFilePath ) )
+               os.environ['CI_ENCODING'] = encoding
+               
+      return fileFound
+         
+   def ciFinalizeHtml( self ):
+      '''
+      Finalize HTML log file by modifying the header tag and
+      appending closing HTML tags to the end of the file
+      '''
+
+      encoding = ''
+      if ( self.logFileEncoding != '' ):
+         encoding = self.logFileEncoding
+      elif 'CI_ENCODING' in os.environ:
+         encoding = os.environ['CI_ENCODING']
+
+
+      if ( not self.logFilePath.is_file() ):
+         if 'CI_LOGFILE' in os.environ:
+            self.logFilePath = Path( os.environ['CI_LOGFILE'] )
       
       if ( self.logFilePath.is_file() ):
-         with open( self.logFilePath, 'a', encoding = encoding ) as logFile:
-            logFile.write("</body>")
-            logFile.write("</html>")
+         with open( self.logFilePath, 'r', encoding = encoding ) as logFile:
+            fileContents = logFile.readlines()
             logFile.close()
+         
+         if ( fileContents[0][:27] == "<!-- ciLogger open file -->" ):
+         
+            firstLine = True
+         
+            with open( self.logFilePath, 'w', encoding = encoding ) as logFile:
+         
+               for line in fileContents:
+                  if ( firstLine ):
+                     firstLine = False
+                     logFile.write( line.replace( "ciLogger open file", "ciLogger closed file" ) )
+                  else:
+                     logFile.write( line )
+               logFile.write("</body>")
+               logFile.write("</html>")
+               logFile.close()
+      elif ( not self.silent ):
+         self.ciError( "No valid open HTML log file specified" )
+         self.status = 0
 

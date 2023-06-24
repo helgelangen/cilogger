@@ -1,19 +1,24 @@
 from datetime import datetime
 from pathlib import Path
 import os
+import sys
 
+ciLoggerDir =  Path(__file__).resolve().parents[1]
+sys.path.append( str( ciLoggerDir ) )
 from cilogger import ciLogger
+
 from test_child import childLogger
 
 logger = ciLogger()
 clogger = childLogger()
 
-run_datetime = datetime.now()
-logFilePath = Path( ".", "LOG_CITEST_" + run_datetime.strftime("%y%m%d_%H%M%S") + ".htm" )
+if ( logger.ciRecoverOpenHtmlFile( "." ) ):
+    logger.ciPrint( " " )
+    logger.ciDebug( "Recovered open HTML log file " + str( os.path.relpath( logger.logFilePath ) ) )
+else:
+    logger.ciError( "An open HTML log file was not found. Build will terminate" )
+    sys.exit(1)
 
-logger.ciInitHtml( str( os.path.abspath( logFilePath ) ), encoding = 'iso-8859-15' )
-
-logger.ciPrint( "cilogger integration test", colFormat = "datetime:20;80" )
 logger.ciPrint( " " )
 logger.ciInfo( "Column format: " + logger.colFormat )
 logger.ciInfo( "Left column will now show message type (if using one of the standard message types)")
@@ -84,5 +89,3 @@ logger.ciPrint( " ", colFormat = "blank:20;80" )
 logger.colFormat = "msgtype:10;wrap:50"
 logger.ciInfo( "Changing column format to " + str( logger.colFormat ) )
 logger.ciInfo( "The text will now automatically wrap to a new line if it exceeds the width of the wrap column, maintaining the left indent of any column preceeding the message column")
-
-logger.ciFinalizeHtml()
