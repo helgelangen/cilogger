@@ -19,13 +19,20 @@ class ciLogger:
                               'error': "ERROR",
                               'warning': "WARNING",
                               'info': "INFO",
-                              'debug': "DEBUG" }
+                              'debug': "DEBUG",
+                              'diffold': "---",
+                              'diffnew': "+++" }
 
       self.msgTypeFg = { 'success': 'green',
-                             'error': 'red',
-                             'warning': 'yellow',
-                             'info': 'cyan',
-                             'debug': 'violet' }
+                         'error': 'red',
+                         'warning': 'yellow',
+                         'info': 'cyan',
+                         'debug': 'violet',
+                         'diffold': 'white',
+                         'diffnew': 'white' }
+      
+      self.msgTypeBg = { 'diffold': 'red',
+                         'diffnew': 'green' }
       
       self.logFilePath = ''
       self.logFileEncoding = ''
@@ -230,6 +237,12 @@ class ciLogger:
    
    def ciSuccess( self, s ):
       self.ciPrint( s, msgType = 'success', fg = self.msgTypeFg['success'] )
+   
+   def ciDiffOld( self, s ):
+      self.ciPrint( s, msgType = 'diffold', fg = self.msgTypeFg['diffold'], bg = self.msgTypeBg['diffold'] )
+   
+   def ciDiffNew( self, s ):
+      self.ciPrint( s, msgType = 'diffnew', fg = self.msgTypeFg['diffnew'], bg = self.msgTypeBg['diffnew'] )
    
    ##################################################
    # HTML logging support functions
