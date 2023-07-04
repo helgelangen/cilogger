@@ -261,6 +261,8 @@ class ciLogger:
          logFile.write('<!-- ciLogger open file -->\r\n')
          logFile.write('<!doctype html>\r\n')
          logFile.write('<html>\r\n')
+         logFile.write('<meta charset="utf-8">\r\n')
+         logFile.write('<meta name="viewport" content="width=device-width, initial-scale=1">\r\n')
          logFile.write('<head>\r\n')
          logFile.write('<style>\r\n')
          logFile.write('body { background-color: #FFFFFF; font-family: "Lucida Console", "Ubuntu Mono", Courier, monospace; }\r\n')
