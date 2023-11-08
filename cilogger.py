@@ -34,7 +34,7 @@ class ciLogger:
       self.msgTypeBg = { 'diffold': 'red',
                          'diffnew': 'green' }
       
-      self.logFilePath = ''
+      self.logFilePath = Path()
       self.logFileEncoding = ''
 
       self.silent = silent
