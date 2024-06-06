@@ -19,11 +19,14 @@ logBuildNum = ''
 if ( args.b > 0 ):
     logBuildNum = f"b{ args.b }_"
 logFilePath = Path( ".", "LOG_CITEST_" + logBuildNum + run_datetime.strftime("%y%m%d_%H%M%S") + ".htm" )
+errorLogFilePath = Path( "error.log" )
 
 logger.ciInitHtml( str( os.path.abspath( logFilePath ) ), encoding = 'iso-8859-15' )
+logger.ciInitErrorLog( str( os.path.abspath( errorLogFilePath ) ), encoding = 'iso-8859-15', useGlobally = True )
 
 logger.ciPrint( "=============================================", colFormat = "80" )
 logger.ciPrint( "cilogger integration test", colFormat = "datetime:20;80" )
 logger.ciPrint( "=============================================", colFormat = "80")
 logger.ciPrint( " " )
 logger.ciDebug( "Creating HTML log file " + str( os.path.relpath( logFilePath ) ) )
+logger.ciDebug( "Creating Error log file "+ str( os.path.relpath( errorLogFilePath ) ) )

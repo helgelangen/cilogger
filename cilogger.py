@@ -35,7 +35,10 @@ class ciLogger:
                          'diffnew': 'green' }
       
       self.logFilePath = Path()
-      self.logFileEncoding = ''
+      self.logFileEncoding = 'utf-8'
+
+      self.errorLogFilePath = Path()
+      self.errorLogFileEncoding = 'utf-8'
 
       self.silent = silent
       self.status = 1
@@ -222,9 +225,28 @@ class ciLogger:
    ##################################################
    # Short print aliases with preset color codes
    ##################################################
-   
+
    def ciError( self, s ):
+      '''
+      The ciError function is different from the other shorthands
+      as it also writes the message payload to the error log file,
+      if an error log file has been initiated
+      '''
       self.ciPrint( s, msgType = 'error', fg = self.msgTypeFg['error'] )
+
+      encoding = self.errorLogFileEncoding
+      errorLogPath = self.errorLogFilePath
+      if ( 'CI_ERRORENCODING' in os.environ ):
+         encoding = os.environ['CI_ERRORENCODING']
+      if ( 'CI_ERRORLOGFILE' in os.environ ):
+         if ( Path( os.environ['CI_ERRORLOGFILE'] ).is_file() ):
+            errorLogPath = Path( os.environ['CI_ERRORLOGFILE'] )
+
+      if ( type( errorLogPath ) != str  ):
+         if ( errorLogPath.is_file() ):
+            with open( errorLogPath, 'a', encoding = encoding) as fp:
+               fp.write( s + "\n" )
+               fp.close()
    
    def ciWarning( self, s ):
       self.ciPrint( s, msgType = 'warning', fg = self.msgTypeFg['warning'] )
@@ -384,4 +406,62 @@ class ciLogger:
       elif ( not self.silent ):
          self.ciError( "No valid open HTML log file specified" )
          self.status = 0
+   
+   ##################################################
+   # Error logging support functions
+   ##################################################
+
+   def ciInitErrorLog( self, filePath, encoding = 'iso-8859-15', useGlobally = True ):
+      '''
+      Initialize logging errors to text file in addition to console output
+      Only the message payload will be written, not the message type
+      if useGlobally is set to true, Python class objects called by the current file,
+      which also uses the cilogger module, will log to the same error log file.
+      '''
+
+      self.errorLogFilePath = Path( filePath )
+      self.errorLogFileEncoding = encoding
+      with open( self.errorLogFilePath, 'w', encoding = encoding) as logFile:
+         logFile.close()
+      if ( useGlobally ):
+         os.environ['CI_ERRORLOGFILE'] = str( os.path.abspath( self.errorLogFilePath ) )
+         os.environ['CI_ERRORENCODING'] = encoding
+   
+   def ciRecoverErrorLog( self, filePath = '', encoding = 'iso-8859-15', useGlobally = True ):
+      '''
+      If filePath points to an existing file, set it as the current error log file
+      and return True. If it is not found, return False.
+
+      If the ciLogger object already has a path to a valid file, or if a path to a valid
+      file is found in the os environment variable CI_ERRORLOGFILE, filePath is ignored and
+      True is returned
+      '''
+      
+      fileFound = False
+      
+      if ( type( self.errorLogFilePath ) != str ):
+         if ( self.errorLogFilePath.is_file() ):
+            fileFound = True
+      if ( not fileFound ):
+         if 'CI_ERRORLOGFILE' in os.environ:
+            if ( Path( os.environ['CI_ERRORLOGFILE'] ).is_file() ):
+               self.errorLogFilePath = Path( os.environ['CI_ERRORLOGFILE'] )
+               fileFound = True
+               if 'CI_ERRORENCODING' in os.environ:
+                  self.errorLogFileEncoding = os.environ['CI_ERRORENCODING']
+         
+      if ( not fileFound ):
+      
+         if ( Path( filePath ).is_file() ):
+            fileFound = True
+            logFilePath = Path( filePath )
+      
+         if ( fileFound ):
+            self.errorLogFilePath = logFilePath
+            self.errorLogFileEncoding = encoding
+            if ( useGlobally ):
+               os.environ['CI_ERRORLOGFILE'] = str( os.path.abspath( self.errorLogFilePath ) )
+               os.environ['CI_ERRORENCODING'] = encoding
+               
+      return fileFound
 

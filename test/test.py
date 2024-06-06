@@ -19,6 +19,13 @@ else:
     logger.ciError( "An open HTML log file was not found. Build will terminate" )
     sys.exit(1)
 
+if ( logger.ciRecoverErrorLog( "error.log" ) ):
+    logger.ciPrint( " " )
+    logger.ciDebug( "Recovered existing error log file " + str( os.path.relpath( logger.errorLogFilePath ) ) )
+else:
+    logger.ciError( "Could not find existing error log file. Build will terminate" )
+    sys.exit(1)
+
 logger.ciPrint( " " )
 logger.ciInfo( "Column format: " + logger.colFormat )
 logger.ciInfo( "Left column will now show message type (if using one of the standard message types)")
