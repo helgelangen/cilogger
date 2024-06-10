@@ -42,17 +42,17 @@ If a Python file that should log to the same HTML file does not inherit the envi
 ```python
 logger.ciRecoverOpenHtmlFile( searchPath, encoding, useGlobally , forceSearch )
 ```
-ciRecoverOpenHtmlFile() takes the following arguments:
-* searchPath: str or pathlib.Path, required: filename of the HTML file to keep working on, or a folder to search for open HTML files. If a path to a file with extension .htm or .html is given, the function checks if the file with the given name exists, and if it has not been closed by the ciFinalizeHtml() function. If an open file is found, ciLogger will log to this file, and the function returns True. If a path to a folder is given, the function browse the folder searching for .htm and .html files, checking if these files were created by ciLogger and that they have not been closed by the ciFinalizeHtml() function. If an open file is found, ciLogger will log to this file, and the function returns true. If multiple open files are found, the last modified file is chosen. If none of the methods find an open file, the function returns false (in which you might consider creating a new file using ciInitHtml()).
-* encoding: str, optional, default utf-8. See Python supported text codecs here: https://docs.python.org/3/library/codecs.html#standard-encodings
-* useGlobally: bool, optional, default True: if set to True, the filepath and encoding will be saved to an environment variable that will be inherited by all Python files called from the file where ciInitHtml() was first invoked. if a ciLogger object is initiated in Python files descending from this file, HTML logging will already be enabled.
-* forceSearch: bool, optional, default False: if a HTML log file has already been specified for the current ciLogger object, e.g. if it has inherited the environment variables from a parent script, or if ciInitHtml() or ciRecoverOpenHtmlFile() has already been performed, no search for existing files is performed. if forceSearch is set to True, however, a search for an existing HTML log file is performed in any case, and if the search finds an existing file, that file will replace the current specified HTML log file.
+`ciRecoverOpenHtmlFile()` takes the following arguments:
+* `searchPath`: str or pathlib.Path, required: filename of the HTML file to keep working on, or a folder to search for open HTML files. If a path to a file with extension .htm or .html is given, the function checks if the file with the given name exists, and if it has not been closed by the `ciFinalizeHtml()` function. If an open file is found, ciLogger will log to this file, and the function returns True. If a path to a folder is given, the function browse the folder searching for .htm and .html files, checking if these files were created by ciLogger and that they have not been closed by the `ciFinalizeHtml()` function. If an open file is found, ciLogger will log to this file, and the function returns true. If multiple open files are found, the last modified file is chosen. If none of the methods find an open file, the function returns false (in which you might consider creating a new file using `ciInitHtml()`).
+* `encoding`: str, optional, default utf-8. See Python supported text codecs here: https://docs.python.org/3/library/codecs.html#standard-encodings
+* `useGlobally`: bool, optional, default True: if set to True, the filepath and encoding will be saved to an environment variable that will be inherited by all Python files called from the file where `ciInitHtml()` was first invoked. if a ciLogger object is initiated in Python files descending from this file, HTML logging will already be enabled.
+* `forceSearch`: bool, optional, default False: if a HTML log file has already been specified for the current ciLogger object, e.g. if it has inherited the environment variables from a parent script, or if `ciInitHtml()` or `ciRecoverOpenHtmlFile()` has already been performed, no search for existing files is performed. if forceSearch is set to True, however, a search for an existing HTML log file is performed in any case, and if the search finds an existing file, that file will replace the current specified HTML log file.
 
-At the end of the script using ciLogger to log to a HTML file, or at the end of the final script in a multi-script test pipeline, the HTML file should be finalized. This means adding the closing </body> and </html> tags at the end of the file, as well as setting the status of the file to closed by changing a special HTML comment at the beginning of the file. This is done by calling the ciFinalizeHtml() function:
+At the end of the script using ciLogger to log to a HTML file, or at the end of the final script in a multi-script test pipeline, the HTML file should be finalized. This means adding the closing </body> and </html> tags at the end of the file, as well as setting the status of the file to closed by changing a special HTML comment at the beginning of the file. This is done by calling the `ciFinalizeHtml()` function:
 ```python
-logger.ciFinalizeHtml( filePath, encoding )
+logger.ciFinalizeHtml()
 ```
-ciFinalizeHtml() takes no arguments and relies on the ciLogger object to already point to a valid, open ciLogger HTML log file.
+`ciFinalizeHtml()` takes no arguments and relies on the ciLogger object to already point to a valid, open ciLogger HTML log file.
 
 ## Create an error log file
 An error log file is a plain text file containing the message payload from each call to the ciError function, without any formatting added. This is useful for recovering all errors thrown during execution of the script.
@@ -62,15 +62,16 @@ To initiate an error log file, run the following command at the beginning of you
 logger.ciInitErrorLog( filePath, encoding, useGlobally )
 ```
 `ciInitErrorLog` takes the following parameters:
-* filepath: str or pathlib.Path, required: filename of the error log file. extension can be anything or no extension at all
-* encoding: str, optional, default utf-8: character encoding of the error log file. See Python supported text codecs here: https://docs.python.org/3/library/codecs.html#standard-encodings
-* useGlobally: bool, optional, default True: if set to True, the filepath and encoding will be saved to an environment variable that will be inherited by all Python files called from the file where `ciInitErrorLog()` was first invoked. if a ciLogger object is initiated in Python files descending from this file, the error log file will already be enabled.
+* `filepath`: str or pathlib.Path, required: filename of the error log file. extension can be anything or no extension at all
+* `encoding`: str, optional, default utf-8: character encoding of the error log file. See Python supported text codecs here: https://docs.python.org/3/library/codecs.html#standard-encodings
+* `useGlobally`: bool, optional, default True: if set to True, the filepath and encoding will be saved to an environment variable that will be inherited by all Python files called from the file where `ciInitErrorLog()` was first invoked. if a ciLogger object is initiated in Python files descending from this file, the error log file will already be enabled.
 
 ## colFormat specification
 
 The colFormat defines the columns of information to be printed. Each column is separated by semicolons, the fields within each column separated by colons.
 
-| Format                          | Description                      |
+| Format                          | Description                                                 |
+|---------------------------------|-------------------------------------------------------------|
 | `80`                            | This column contains the message to print, padded (if necessary) to 80 characters width. Note: Message will _not_ be truncated, even if exceeding the column width |
 | `wrap:80`                       | this column will also contain the message to print, padded (if necessary) to 80 characters width. If the message exceeds the column width, it will wrap to a new line |
 | `msgtype:10`                    | this column contains the message type, if using a built in message type, with column width 10. Field will be truncated if exceeding the column width. Field will be blank if the message type is invalid |
