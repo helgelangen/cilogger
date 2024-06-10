@@ -3,8 +3,6 @@ from pathlib import Path
 import os
 import sys
 
-ciLoggerDir =  Path(__file__).resolve().parents[1]
-sys.path.append( str( ciLoggerDir ) )
 from cilogger import ciLogger
 
 from test_child import childLogger

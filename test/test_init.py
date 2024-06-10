@@ -4,8 +4,6 @@ import os
 import sys
 import argparse
 
-ciLoggerDir =  Path(__file__).resolve().parents[1]
-sys.path.append( str( ciLoggerDir ) )
 from cilogger import ciLogger
 
 parser = argparse.ArgumentParser()

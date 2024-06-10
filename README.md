@@ -3,9 +3,19 @@
 # cilogger
 Utility for producing beautiful formatted console output when running continous integration tests
 
+## Installation
+Install cilogger using the following terminal command (requires setuptools):
+```
+python setup.py install
+```
+> Tip: use a venv if you do not wish to install cilogger globally
+
 ## Invoking the cilogger in your script
-To invoke the cilogger, create a ciLogger object:
+Once installed, include and invoke the ciLogger class as follows:
+
 ```python
+from cilogger import ciLogger
+
 logger = ciLogger()
 ```
 
@@ -25,7 +35,7 @@ logger.ciInitHtml( filepath, encoding, useGlobally)
 ```
 ciInitHtml() takes the following arguments:
 * filepath: str or pathlib.Path, required: filename of the HTML file. should have .htm or .html extension
-* encoding: str, optional, default iso-8859-15: character encoding of the HTML file. See Python supported text codecs here: https://docs.python.org/3/library/codecs.html#standard-encodings
+* encoding: str, optional, default utf-8: character encoding of the HTML file. See Python supported text codecs here: https://docs.python.org/3/library/codecs.html#standard-encodings
 * useGlobally: bool, optional, default True: if set to True, the filepath and encoding will be saved to an environment variable that will be inherited by all Python files called from the file where ciInitHtml() was first invoked. if a ciLogger object is initiated in Python files descending from this file, HTML logging will already be enabled.
 
 If a Python file that should log to the same HTML file does not inherit the environment variable set by the ciInitHtml() function, e.g. in a Jenkins pipeline with several steps, you can set the ciLogger object to use an existing HTML log file by calling the ciRecoverOpenHtmlFile() function:
@@ -34,7 +44,7 @@ logger.ciRecoverOpenHtmlFile( searchPath, encoding, useGlobally , forceSearch )
 ```
 ciRecoverOpenHtmlFile() takes the following arguments:
 * searchPath: str or pathlib.Path, required: filename of the HTML file to keep working on, or a folder to search for open HTML files. If a path to a file with extension .htm or .html is given, the function checks if the file with the given name exists, and if it has not been closed by the ciFinalizeHtml() function. If an open file is found, ciLogger will log to this file, and the function returns True. If a path to a folder is given, the function browse the folder searching for .htm and .html files, checking if these files were created by ciLogger and that they have not been closed by the ciFinalizeHtml() function. If an open file is found, ciLogger will log to this file, and the function returns true. If multiple open files are found, the last modified file is chosen. If none of the methods find an open file, the function returns false (in which you might consider creating a new file using ciInitHtml()).
-* encoding: str, optional, default iso-8859-15. See Python supported text codecs here: https://docs.python.org/3/library/codecs.html#standard-encodings
+* encoding: str, optional, default utf-8. See Python supported text codecs here: https://docs.python.org/3/library/codecs.html#standard-encodings
 * useGlobally: bool, optional, default True: if set to True, the filepath and encoding will be saved to an environment variable that will be inherited by all Python files called from the file where ciInitHtml() was first invoked. if a ciLogger object is initiated in Python files descending from this file, HTML logging will already be enabled.
 * forceSearch: bool, optional, default False: if a HTML log file has already been specified for the current ciLogger object, e.g. if it has inherited the environment variables from a parent script, or if ciInitHtml() or ciRecoverOpenHtmlFile() has already been performed, no search for existing files is performed. if forceSearch is set to True, however, a search for an existing HTML log file is performed in any case, and if the search finds an existing file, that file will replace the current specified HTML log file.
 
@@ -44,20 +54,36 @@ logger.ciFinalizeHtml( filePath, encoding )
 ```
 ciFinalizeHtml() takes no arguments and relies on the ciLogger object to already point to a valid, open ciLogger HTML log file.
 
+## Create an error log file
+An error log file is a plain text file containing the message payload from each call to the ciError function, without any formatting added. This is useful for recovering all errors thrown during execution of the script.
+
+To initiate an error log file, run the following command at the beginning of your script:
+```python
+logger.ciInitErrorLog( filePath, encoding, useGlobally )
+```
+`ciInitErrorLog` takes the following parameters:
+* filepath: str or pathlib.Path, required: filename of the error log file. extension can be anything or no extension at all
+* encoding: str, optional, default utf-8: character encoding of the error log file. See Python supported text codecs here: https://docs.python.org/3/library/codecs.html#standard-encodings
+* useGlobally: bool, optional, default True: if set to True, the filepath and encoding will be saved to an environment variable that will be inherited by all Python files called from the file where `ciInitErrorLog()` was first invoked. if a ciLogger object is initiated in Python files descending from this file, the error log file will already be enabled.
+
 ## colFormat specification
 
 The colFormat defines the columns of information to be printed. Each column is separated by semicolons, the fields within each column separated by colons.
 
-'80' (just a number): this column contains the message to print. Note: Message will _not_ be truncated, even if exceeding the column width  
-'wrap:80': this column will also contain the message to print. If the message exceeds the column width, it will wrap to a new line  
-'msgtype:10': this column contains the message type, if using a built in message type, with column width 10. Field will be truncated if exceeding the column width. Field will be blank if the message type is invalid  
-'datetime:20': Current date and time formatted using the current set datetime format string. Field will be truncated if exceeding the column width  
-'datetime:%d.%m.%y %H:%M:%S:20': Current date and time formatted using the datetime format string given in the middle field. Semicolons must not be used. Field will be truncated if exceeding the column width  
-'timer:runtime:6:10': prints the current runtime since the cilogger object was initiated, in seconds, with a precision of 6 decimals and column width 10. Field will be truncated if exceeding the column width  
-'timer:mytimer:6:10': prints the current time of custom timer mytimer, if mytimer has been initiated, in seconds with a precision of 6 and column width 10. Field will be truncated if exceeding the column width. Field will be blank if a timer with the given timer name has not been initiated.  
-'timer_ns:mytimer:11': prints the current time of custom timer mytimer, if mytimer has been initiated, in nanoseconds with column width 11. Field will be truncated if exceeding the column width. Field will be blank if a timer with the given timer name has not been initiated.  
+| Format                          | Description                      |
+| `80`                            | This column contains the message to print, padded (if necessary) to 80 characters width. Note: Message will _not_ be truncated, even if exceeding the column width |
+| `wrap:80`                       | this column will also contain the message to print, padded (if necessary) to 80 characters width. If the message exceeds the column width, it will wrap to a new line |
+| `msgtype:10`                    | this column contains the message type, if using a built in message type, with column width 10. Field will be truncated if exceeding the column width. Field will be blank if the message type is invalid |
+| `datetime:20`                   | Current date and time formatted using the current set datetime format string. Field will be truncated if exceeding the column width |
+| `datetime:%d.%m.%y %H:%M:%S:20` | Current date and time formatted using the datetime format string given in the middle field. Semicolons must not be used. Field will be truncated if exceeding the column width |
+| `timer:runtime:6:10`            | prints the current runtime since the cilogger object was initiated, in seconds, with a precision of 6 decimals and column width 10. Field will be truncated if exceeding the column width |
+| `timer:mytimer:6:10`            | prints the current time of custom timer mytimer, if mytimer has been initiated, in seconds with a precision of 6 and column width 10. Field will be truncated if exceeding the column width. Field will be blank if a timer with the given timer name has not been initiated |
+| `timer_ns:mytimer:11`           | prints the current time of custom timer mytimer, if mytimer has been initiated, in nanoseconds with column width 11. Field will be truncated if exceeding the column width. Field will be blank if a timer with the given timer name has not been initiated |
 
 ## Using with Jenkins
 Jenkins captures the console output from any shell command, including python scripts, called from a Jenkins job. To have Jenkins interpret the ANSI escape sequences used to apply styles to the console output, the AnsiColor plugin must be installed on the Jenkins controller. Go to the 'Manage Jenkins' -> 'Plugins' -> 'Available plugins' to find and install the AnsiColor plugin. Also see https://plugins.jenkins.io/ansicolor/.
 
 An example on how to invoke the ciLogger in a Jenkins pipeline build can be found in the Jenkinsfile found in this repository, which calls scripts in the test subfolder.
+
+### Slack notifications in Jenkins
+The included example Jenkinsfile also demonstrates how to send Slack notifications from Jenkins. Install the Slack Notify plugin found at https://plugins.jenkins.io/slack
